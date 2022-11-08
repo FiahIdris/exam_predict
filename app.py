@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 from pyspark.ml.classification import RandomForestClassificationModel
 from pyspark.ml.linalg import Vectors
 from pyspark import SparkContext
-sc = SparkContext()
+import numpy as np
+# sc = SparkContext()
 # Deployment purposes
 
 
@@ -44,10 +45,10 @@ df = load_data()
 
 def homepage_screen():
     # ["Difficulty", "Gender", "a1", "a2", "a3", "a4", "a5", "a6", "AstExpMonths", "AstWLCount", "midScore"]
-    st.title('INSOMNIA DETECTION')
+    st.title('EXAM PASSED PREDICTION')
     st.header("Dataset Information")
     st.write("""  
-        **About Dataset**  
+         ## 📌 About Dataset  
             Difficulty - Subject difficulty level  
             Gender - Students gender  
             A1 - First meeting presence  
@@ -60,16 +61,30 @@ def homepage_screen():
             AstWLCount - Total warning letter from assistant  
             MidScore - Students score on mid semester  
         
-        The dataset contains of 220 instances and 11 columns
+        The dataset contains of 361 instances and 11 columns
         
-    """)
+     """)
+    
+    # Load data
+    df = load_data()
+
 
     if st.checkbox('See clean dataset'):
-        # Load data
+     
         data_load_state = st.text('Loading data...')
-        df = load_data()
+        
         st.write(df)
         data_load_state.text('')
+        
+    st.write("""
+    ## 📌 Target Label Frequency  
+    
+    """)
+    fig, axs = plt.subplots(ncols=2, figsize=(10, 4))
+    df['passed'].value_counts().plot(kind='bar', ax=axs[0])
+    df['passed'].value_counts().plot.pie(
+        autopct='%1.1f%%', startangle=90, ax=axs[1], colors=['green', 'teal'])
+    st.write(fig)
 
 
 def exploration_screen():
@@ -84,23 +99,13 @@ def exploration_screen():
     """)
     # Matrix correlation.
 
-    df_pandas = (operationalDF.select("Difficulty", "Gender", "a1", "a2", "a3", "a4", "a5", "a6", "AstExpMonths", "AstWLCount","passed")).toPandas()
+    df_pandas = df[["Difficulty", "Gender", "a1", "a2", "a3", "a4", "a5", "a6", "AstExpMonths", "AstWLCount","midScore","passed"]]
     corr_matrix = df_pandas.corr()
     mask = np.triu(corr_matrix)
     plt.figure(figsize=(11,5))
 
     fig, ax = plt.subplots(figsize=(10,10))
     sns.heatmap(corr_matrix, annot=True, ax=ax,mask= mask )
-    
-    
-    
-    
-    # fig, ax = plt.subplots()
-    # corr_df = df[['age', 'sex', 'stress', 'doctor', 'ubp', 'lbp',
-    #              'insomnia']]
-    # plt.figure(figsize=[10, 1])
-    # sns.heatmap(corr_df.corr(), annot=True, cmap='RdYlGn', ax=ax)
-    # plt.style.available
     plt.title('Correlation Among Features')
     st.write(fig)
 
@@ -110,47 +115,55 @@ def exploration_screen():
     """)
     # Display correlation towards target column
     fig, axs = plt.subplots(figsize=(10, 4))
-    corr = df.corr()['insomnia'].reset_index()
+    corr = df.corr()['passed'].reset_index()
     # corr.drop( axis=0, inplace=True)
-    sns.barplot(data=corr, x='index', y='insomnia', ax=axs)
+    sns.barplot(data=corr, x='index', y='passed', ax=axs)
     plt.xticks(rotation=70)
     st.write(fig)
 
-    st.write("""
-        ## 📌 Target Label Frequency  
-        
-    """)
+#     st.write("""
+#         ## 📌 Target Label Frequency  
+#         
+#     """)
+# 
+#     fig, axs = plt.subplots(ncols=2, figsize=(10, 4))
+#     df['passed'].value_counts().plot(kind='bar', ax=axs[0])
+#     df['passed'].value_counts().plot.pie(
+#         autopct='%1.1f%%', startangle=90, ax=axs[1], colors=['green', 'teal'])
+#     st.write(fig)
+# 
+#     st.write("""
+#         ## 📌  AstExpMonths and passed
+#         
+#     """)
+#     fig, axs = plt.subplots()
+#     sns.scatterplot(data=df, x='AstExpMonths', y='AstWLCount', hue='passed', ax=axs)
+#     st.write(fig)
 
-    fig, axs = plt.subplots(ncols=2, figsize=(10, 4))
-    df['insomnia'].value_counts().plot(kind='bar', ax=axs[0])
-    df['insomnia'].value_counts().plot.pie(
-        autopct='%1.1f%%', startangle=90, ax=axs[1], colors=['green', 'teal'])
-    st.write(fig)
-
     st.write("""
-        ## 📌  Blood_pressure and Insomnia
+        ## 📌 MidScore and Passed
         
     """)
     fig, axs = plt.subplots()
-    sns.scatterplot(data=df, x='lbp', y='ubp', hue='insomnia', ax=axs)
-    st.write(fig)
-
-    st.write("""
-        ## 📌 Gender and Height Relation.
-        
-    """)
-    fig, axs = plt.subplots(ncols=2, figsize=(10, 4))
-    sns.scatterplot(data=df, x='height', y='weight', hue='sex', ax=axs[0])
-    sns.kdeplot(data=df, x='height', hue='sex', ax=axs[1])
+    sns.scatterplot(data=df, x='midScore', y='AstExpMonths', hue='passed', ax=axs)
+    # sns.kdeplot(data=df, x='midScore', hue='passed', ax=axs)
     plt.show()
     st.write(fig)
 
     st.write("""
-        ## 📌  Doctor and Stress Relation
+        ## 📌  Difficulty and Passed
         
     """)
     fig, axs = plt.subplots()
-    sns.countplot(data=df, x='doctor', hue='stress', ax=axs)
+    sns.countplot(data=df, x='Difficulty', hue='passed', ax=axs)
+    st.write(fig)
+    
+    st.write("""
+        ## 📌  Gender and Passed
+        
+    """)
+    fig, axs = plt.subplots()
+    sns.countplot(data=df, x='Gender', hue='passed', ax=axs)
     st.write(fig)
 
 
