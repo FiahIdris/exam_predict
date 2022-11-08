@@ -6,6 +6,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from pyspark.ml.classification import RandomForestClassificationModel
 from pyspark.ml.linalg import Vectors
+from pyspark import SparkContext
+sc = SparkContext()
 # Deployment purposes
 
 
@@ -19,12 +21,12 @@ model = RandomForestClassificationModel.load("modelRF")
 
 def main():
     page = st.sidebar.selectbox(
-        "Select a page", ["Homepage", "Prediction","Model"])
+        "Select a page", ["Homepage","Exploration", "Prediction","Model"])
 
     if page == "Homepage":
         homepage_screen()
-    # elif page == "Exploration":
-    #     exploration_screen()
+    elif page == "Exploration":
+        exploration_screen()
     elif page == "Model":
         model_screen()
     elif page == "Prediction":
@@ -81,11 +83,23 @@ def exploration_screen():
         
     """)
     # Matrix correlation.
-    fig, ax = plt.subplots()
-    corr_df = df[['age', 'sex', 'stress', 'doctor', 'ubp', 'lbp',
-                 'insomnia']]
-    plt.figure(figsize=[10, 1])
-    sns.heatmap(corr_df.corr(), annot=True, cmap='RdYlGn', ax=ax)
+
+    df_pandas = (operationalDF.select("Difficulty", "Gender", "a1", "a2", "a3", "a4", "a5", "a6", "AstExpMonths", "AstWLCount","passed")).toPandas()
+    corr_matrix = df_pandas.corr()
+    mask = np.triu(corr_matrix)
+    plt.figure(figsize=(11,5))
+
+    fig, ax = plt.subplots(figsize=(10,10))
+    sns.heatmap(corr_matrix, annot=True, ax=ax,mask= mask )
+    
+    
+    
+    
+    # fig, ax = plt.subplots()
+    # corr_df = df[['age', 'sex', 'stress', 'doctor', 'ubp', 'lbp',
+    #              'insomnia']]
+    # plt.figure(figsize=[10, 1])
+    # sns.heatmap(corr_df.corr(), annot=True, cmap='RdYlGn', ax=ax)
     # plt.style.available
     plt.title('Correlation Among Features')
     st.write(fig)
