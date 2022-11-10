@@ -8,7 +8,7 @@ from pyspark.ml.classification import RandomForestClassificationModel
 from pyspark.ml.linalg import Vectors
 from pyspark import SparkContext
 import numpy as np
-# sc = SparkContext()
+
 # Deployment purposes
 
 
@@ -21,6 +21,7 @@ model = RandomForestClassificationModel.load("modelRF")
 
 
 def main():
+    # sc = SparkContext()
     page = st.sidebar.selectbox(
         "Select a page", ["Homepage","Exploration", "Prediction","Model"])
 
