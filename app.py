@@ -8,20 +8,24 @@ from pyspark.ml.classification import RandomForestClassificationModel
 from pyspark.ml.linalg import Vectors
 from pyspark import SparkContext
 import numpy as np
+import pandas as pd
+from pyspark import SparkConf
+from pyspark.sql import SparkSession
+import numpy as np
 
-# Deployment purposes
-
-
+sc = SparkContext.getOrCreate()
 
 # Sidebar widget
 st.sidebar.header('Menu')
 # loading our model
-
 model = RandomForestClassificationModel.load("modelRF")
 
 
+
+
 def main():
-    # sc = SparkContext()
+
+
     page = st.sidebar.selectbox(
         "Select a page", ["Homepage","Exploration", "Prediction","Model"])
 
